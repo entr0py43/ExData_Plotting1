@@ -1,0 +1,38 @@
+library(data.table)
+library(dplyr)
+library(lubridate)
+
+#checking for directory indicating dataset is present
+if(!file.exists("./household_power_consumption.txt")){
+      #proceeds if absent with download, and unzip
+      temp<-tempfile("./temp.zip")
+      fileUrl<-"https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2Fhousehold_power_consumption.zip"
+      download.file(fileUrl,destfile = "./temp.zip")
+      unzip("./temp.zip")
+      unlink("./temp.zip")
+}  #creates data directories in default wd
+
+#read in file
+pwr<-fread("household_power_consumption.txt")
+
+#convert dates to Date variable class
+pwr$Date<-dmy(pwr$Date)
+#filter out two dates for assignment
+feb<-filter(pwr, pwr$Date %in% as.Date(c("2007-2-2","2007-2-1")))
+
+#creating a POSIXct datetime variable
+feb<-within(feb,{datetime=as.POSIXct(paste(Date, Time))})
+
+#making this variable numeric instead of char
+feb$Global_active_power<-as.numeric(feb$Global_active_power)
+
+#plot code below here
+###############################################
+#recreating plot 2, outputting to PNG
+png(filename = "plot2.png", width=480, height=480)
+
+plot(y = feb$Global_active_power,x = feb$datetime, xlab = " ", 
+     ylab = "Global Active Power (kilowatts)", type = "n")
+lines(y = feb$Global_active_power, x = feb$datetime)
+
+dev.off()
